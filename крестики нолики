@@ -1,7 +1,10 @@
-print("Приветствую! Игра Крестики-нолики для двух игроков!")
+print("Hello! This game tic-tac-toe!")
+print("Tic-tac-toe game rules:\n 1. Take turns choosing a cell with a number where you would like to go.\n "
+      "2. Enter only numbers from 1 to 9 respectively the numbering of the cells.\n"
+      " 3. The winner is the one who collects 3 crosses or 3 zeros in a line, column or diagonal.\n Have a good game!")
 board = list(range(1, 10))
 
-def draw_board(board):
+def border_board(board):
     print('-' * 13)
     for i in range(3):
         print('|', board[0+i*3], '|', board[1+i*3], '|', board[2+i*3], '|')
@@ -10,20 +13,20 @@ def draw_board(board):
 def take_input(player_step):
     valid = False
     while not valid:
-        player_answer = input("Ваш ход " + player_step + "?")
+        player_answer = input("Your turn " + player_step + "?")
         try:
             player_answer = int(player_answer)
         except:
-            print("Некорректный ввод. Введите число.")
+            print("Incorrect input. Enter the number.")
             continue
         if player_answer >= 1 and player_answer <= 9:
             if (str(board[player_answer - 1]) not in 'XO'):
                 board[player_answer - 1] = player_step
                 valid = True
             else:
-                print("Это поле уже занято.")
+                print("This field is already taken.")
         else:
-            print("Некорректный ввод. Введите число в диапазоне от 1 до 9 включительно.")
+            print("Incorrect input. Enter the number in the range from 1 to 9.")
 
 def check_win(board):
     win_cord = ((0,1,2), (3,4,5), (6,7,8), (0,3,6,), (1,4,7), (2,5,8), (0,4,8), (2,4,6))
@@ -36,7 +39,7 @@ def main(board):
     counter = 0
     win = False
     while not win:
-        draw_board(board)
+        border_board(board)
         if counter % 2 == 0:
             take_input('X')
         else:
@@ -45,12 +48,12 @@ def main(board):
         if counter > 4:
             tmp = check_win(board)
             if tmp:
-                print(tmp, "Выиграл!")
+                print(tmp, "Win!")
                 win = True
                 break
         if counter == 9:
-            print("Ничья!")
+            print("Draw!")
             break
-    draw_board(board)
+
 
 main(board)
