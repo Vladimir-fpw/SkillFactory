@@ -1,0 +1,76 @@
+import telebot
+import requests
+import json
+
+TOKEN = "5912916534:AAE_oYQHqNfh26liD1VjuTtmK7eB8PK5jGI"
+
+bot = telebot.TeleBot(TOKEN)
+
+keys = {
+    'рубль':'RUB',
+    'доллар':'USD',
+    'евро':'EUR',
+}
+
+@bot.message_handler(commands=['start', 'help'])
+def help(message: telebot.types.Message):
+    text = "Рад приветсвовать Вас! Моя работа конвертировать валюты для Вас!\n Чтобы начать работу введите комманду боту в следующем формате: \n<имя валюты>  \
+           <в какую валюту перевести> \
+           <колличество переводимой валюты> вводить код валюты на английском\
+           <Доступные валюты по комманде: /values>"
+    bot.reply_to(message, text)
+
+
+@bot.message_handler(commands=['values'])
+def values(message: telebot.types.Message):
+    text = 'Доступные валюты: '
+    for key in keys.keys():
+        text = '\n'.join((text, key, ))
+    bot.reply_to(message, text)
+
+
+@bot.message_handler(content_types=['text'])
+def converter(message: telebot.types.Message):
+    base, sym, amount = message.text.split()
+    url = f"https://api.apilayer.com/exchangerates_data/convert?to={sym}&from={base}&amount={amount}"
+    headers = {
+        "apikey": "RfeFJ3jLcVOYevESQOhw1cLMf4aaiGaJ"
+    }
+
+    r = requests.get(url, headers=headers)
+    resp = json.loads(r.content)
+    new_price = resp['result']
+    bot.reply_to(message, f"Цена {amount} {base} в {sym} : {new_price}")
+
+class APIException(Exception):
+    pass
+
+class Convertor:
+    @staticmethod
+    def get_price(base, sym, amount):
+        try:
+            base_key = keys[base.lower()]
+        except KeyError:
+            raise APIException(f"Валюта {base} не найдена!")
+        try:
+            sym_key = keys[sym.lower()]
+        except KeyError:
+            raise APIException(f"Валюта {sym} не найдена!")
+
+        if base_key == sym_key:
+            raise APIException(f'Невозможно перевести одинаковые валюты {base}!')
+
+        try:
+            amount = float(amount)
+        except ValueError:
+            raise APIException(f'Не удалось обработать количество {amount}!')
+
+        r = requests.get(f"https://api.apilayer.com/exchangerates_data/convert?to={sym}&from={base}&amount={amount}")
+        resp = json.loads(r.content)
+        new_price = resp['conversion_rates'][sym_key] * amount
+        new_price = round(new_price, 3)
+        message = f"Цена {amount} {base} в {sym} : {new_price}"
+        return message
+
+
+bot.polling()
